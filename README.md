@@ -34,5 +34,14 @@ Open `index.html` in any browser, or host it (below) and share the link.
 - Progress **auto-saves** in the player's browser (localStorage). Sound and music are generated in-browser (Web Audio) — no audio files needed.
 
 ## Tech
-Single self-contained `index.html` (HTML + CSS + vanilla JS). Works on
+Single self-contained `index.html` (HTML + CSS + vanilla JS, canvas-rendered
+arena with hand-drawn piggies, crack/shatter/particle effects). Works on
 desktop and mobile. No build step, no dependencies.
+
+## Version 2 (Nov 5, 2026)
+Rebuilt after v1 play-test feedback ("it's bad"): canvas engine instead of
+emoji pigs, progressive cracking, screen shake, ceramic-shard and coin
+particles, rebalanced economy (cheaper first bill, 1-stamina swings, faster
+regen), and a fixed bill panel that no longer re-renders every frame.
+To update an existing GitHub Pages deployment, just replace `index.html`
+in the repo — Pages redeploys automatically in about a minute.
