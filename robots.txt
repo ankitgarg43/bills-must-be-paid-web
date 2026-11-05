@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://ankitgarg43.github.io/bills-must-be-paid-web/sitemap.xml

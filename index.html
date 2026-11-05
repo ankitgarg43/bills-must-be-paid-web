@@ -1,0 +1,479 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Bills Must Be Paid — Free Piggy-Smashing Game in Your Browser</title>
+<meta name="description" content="A free, original browser game inspired by the piggy-smashing incremental genre: smash piggy banks, earn coins, pay your bills before bankruptcy, unlock hammers, upgrades, perks, rare coins and prestige rings. No download, no sign-up.">
+<meta name="theme-color" content="#111827">
+<link rel="canonical" href="https://ankitgarg43.github.io/bills-must-be-paid-web/">
+<meta property="og:type" content="website">
+<meta property="og:title" content="Bills Must Be Paid — Free Browser Game">
+<meta property="og:description" content="Smash piggy banks. Pay the bills. Don't go bankrupt. A complete free incremental game that runs in your browser.">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="Bills Must Be Paid — Free Browser Game">
+<meta name="twitter:description" content="Smash piggy banks, unlock hammers and perks, collect rare coins, pay every bill.">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🐷</text></svg>">
+<style>
+:root{--bg:#0f1220;--panel:#1a1e33;--panel2:#232842;--card:#ffffff;--ink:#f4f4f8;--mut:#aab;--gold:#fbbf24;--pink:#ff7eb6;--green:#34d399;--red:#f87171;--blue:#60a5fa}
+*{box-sizing:border-box}html,body{margin:0;padding:0}
+body{background:radial-gradient(1200px 600px at 50% -10%,#2b2f55,var(--bg));color:var(--ink);font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;min-height:100vh}
+a{color:var(--blue)}
+header{max-width:1180px;margin:0 auto;padding:14px 14px 4px;display:flex;flex-wrap:wrap;gap:10px;align-items:center;justify-content:space-between}
+h1{font-size:clamp(22px,4vw,34px);margin:0}h1 .pig{display:inline-block;animation:bob 1.6s ease-in-out infinite}
+@keyframes bob{0%,100%{transform:translateY(0) rotate(-4deg)}50%{transform:translateY(-6px) rotate(4deg)}}
+.tag{color:var(--mut);font-size:13px}
+.hud{max-width:1180px;margin:8px auto;padding:0 14px;display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:8px}
+.stat{background:var(--panel);border:1px solid #ffffff1c;border-radius:14px;padding:9px 12px}
+.stat b{display:block;font-size:19px}.stat span{font-size:11px;color:var(--mut);text-transform:uppercase;letter-spacing:.06em}
+.bar{height:12px;background:#0006;border-radius:99px;overflow:hidden;margin-top:5px}
+.bar>i{display:block;height:100%;background:linear-gradient(90deg,#f59e0b,#34d399);width:100%;transition:width .2s}
+.bar.stam>i{background:linear-gradient(90deg,#f87171,#fbbf24,#34d399)}
+main{max-width:1180px;margin:6px auto;padding:0 14px 20px;display:grid;grid-template-columns:1.65fr 1fr;gap:12px}
+@media(max-width:860px){main{grid-template-columns:1fr}}
+#arena{position:relative;background:linear-gradient(180deg,#ffe9f3 0%,#ffd9e8 55%,#c98d5f 55.2%,#a9713f 100%);border-radius:18px;min-height:430px;overflow:hidden;cursor:none;border:3px solid #ffffff22;touch-action:manipulation;user-select:none;-webkit-user-select:none}
+#arena .floorline{position:absolute;left:0;right:0;top:55%;text-align:center;font-size:12px;color:#7c4a21;font-weight:700;letter-spacing:.15em}
+#hammer{position:absolute;font-size:44px;pointer-events:none;z-index:40;transform:translate(-15%,-70%) rotate(-25deg);filter:drop-shadow(2px 4px 3px #0005)}
+#hammer.swing{animation:swing .16s ease}
+@keyframes swing{0%{transform:translate(-15%,-70%) rotate(-25deg)}45%{transform:translate(-15%,-45%) rotate(38deg) scale(1.1)}100%{transform:translate(-15%,-70%) rotate(-25deg)}}
+.pig{position:absolute;width:74px;height:60px;cursor:none;z-index:10;transition:filter .1s}
+.pig .body{font-size:52px;line-height:1;text-align:center;filter:drop-shadow(2px 3px 2px #0003)}
+.pig .hp{height:7px;background:#0005;border-radius:99px;overflow:hidden;margin-top:1px}
+.pig .hp>i{display:block;height:100%;background:var(--green)}
+.pig .nm{font-size:10px;text-align:center;color:#5b2140;font-weight:800;text-shadow:0 1px 0 #fff9}
+.pig.hit{animation:shake .15s}
+@keyframes shake{0%,100%{transform:translateX(0)}25%{transform:translateX(-5px) rotate(-4deg)}75%{transform:translateX(5px) rotate(4deg)}}
+.pig.runner .body{animation:run .3s infinite alternate}
+@keyframes run{from{transform:translateY(0)}to{transform:translateY(-5px)}}
+.coin{position:absolute;font-size:20px;z-index:30;pointer-events:none;animation:coinfly .8s ease-out forwards}
+@keyframes coinfly{0%{transform:translateY(0) scale(.6);opacity:1}70%{opacity:1}100%{transform:translateY(-95px) translateX(var(--dx,20px)) scale(1.15);opacity:0}}
+.dmg{position:absolute;font-weight:900;font-size:17px;color:#7c2d12;text-shadow:0 1px 0 #fff;z-index:31;pointer-events:none;animation:dmgup .7s forwards}
+.dmg.crit{color:#b45309;font-size:23px}
+@keyframes dmgup{to{transform:translateY(-55px);opacity:0}}
+.shard{position:absolute;font-size:15px;z-index:29;pointer-events:none;animation:coinfly .6s forwards}
+.panel{background:var(--panel);border:1px solid #ffffff1c;border-radius:18px;padding:12px;margin-bottom:12px}
+.panel h2{margin:0 0 8px;font-size:16px}
+.bill{background:var(--panel2);border:1px solid #ffffff22;border-left:6px solid var(--red);border-radius:12px;padding:9px 11px;margin-bottom:8px}
+.bill.due{border-left-color:var(--gold)}.bill.over{border-left-color:#ef4444;animation:pulse 1s infinite}
+@keyframes pulse{50%{box-shadow:0 0 0 5px #ef444433}}
+.bill .row{display:flex;justify-content:space-between;gap:8px;align-items:center}
+.bill small{color:var(--mut)}
+button{font:inherit;font-weight:700;border:0;border-radius:11px;padding:9px 13px;background:var(--gold);color:#231303;cursor:pointer}
+button:hover{filter:brightness(1.07)}button:disabled{opacity:.45;cursor:not-allowed}
+button.ghost{background:#ffffff14;color:var(--ink);border:1px solid #ffffff2a}
+button.blue{background:var(--blue);color:#081527}button.green{background:var(--green);color:#06251a}button.red{background:var(--red);color:#2b0606}
+.shop{display:grid;gap:7px}
+.item{display:flex;justify-content:space-between;gap:8px;align-items:center;background:var(--panel2);border:1px solid #ffffff1a;border-radius:12px;padding:8px 10px}
+.item small{display:block;color:var(--mut);font-weight:400}
+.item .lv{color:var(--gold);font-size:12px}
+.hammers{display:flex;flex-wrap:wrap;gap:6px}
+.hammers button.sel{outline:3px solid var(--gold)}
+.abil{display:flex;gap:6px;flex-wrap:wrap}
+.abil button{flex:1;min-width:100px}
+.coins{display:flex;gap:6px;flex-wrap:wrap;font-size:24px}
+.coins .c{opacity:.22;filter:grayscale(1)}.coins .c.got{opacity:1;filter:none}
+.log{background:#0007;border-radius:12px;padding:9px 11px;font-size:13px;height:118px;overflow:auto}
+.log div{margin:2px 0}.log .good{color:var(--green)}.log .bad{color:var(--red)}.log .gold{color:var(--gold)}
+.overlay{position:fixed;inset:0;background:#06060fd9;display:flex;align-items:center;justify-content:center;z-index:100;padding:14px}
+.modal{background:var(--panel);border:1px solid #ffffff2a;border-radius:20px;max-width:560px;width:100%;padding:22px;max-height:92vh;overflow:auto}
+.modal h2{margin-top:0}.hidden{display:none!important}
+.perks{display:grid;gap:8px}
+.perk{text-align:left;background:var(--panel2);color:var(--ink);border:1px solid #ffffff2a;padding:12px}
+.perk b{color:var(--gold);display:block}
+footer{max-width:1180px;margin:0 auto;padding:0 14px 26px;color:var(--mut);font-size:13px}
+#banner{position:absolute;top:10px;left:50%;transform:translateX(-50%);background:#111827ee;color:#fff;padding:8px 16px;border-radius:99px;font-weight:800;z-index:50;white-space:nowrap}
+.kbd{background:#0006;border-radius:5px;padding:1px 6px}
+:focus-visible{outline:3px solid var(--blue);outline-offset:2px}
+</style>
+</head>
+<body>
+<header>
+  <div><h1><span class="pig" aria-hidden="true">🐷</span> Bills Must Be Paid</h1><div class="tag">Smash piggy banks. Pay the bills. Don't go bankrupt. Free in your browser — no download, no sign-up.</div></div>
+  <div style="display:flex;gap:6px;flex-wrap:wrap">
+    <button class="ghost" id="musicBtn" aria-label="Toggle music">🎵 Music: Off</button>
+    <button class="ghost" id="soundBtn" aria-label="Toggle sound effects">🔊 Sound: On</button>
+    <button class="ghost" id="helpBtn">❓ How to play</button>
+    <button class="ghost" id="resetBtn">↺ Reset save</button>
+  </div>
+</header>
+
+<div class="hud" role="status" aria-label="Game status">
+  <div class="stat"><span>💰 Money</span><b id="hMoney">$0</b></div>
+  <div class="stat"><span>⚡ Stamina (your hand)</span><b id="hStamTxt">100</b><div class="bar stam"><i id="hStam"></i></div></div>
+  <div class="stat"><span>🧾 Bills paid</span><b id="hBills">0 / 15</b></div>
+  <div class="stat"><span>⭐ Legacy points</span><b id="hLegacy">0</b></div>
+  <div class="stat"><span>🔨 Hammer</span><b id="hHammer" style="font-size:15px">Wooden Mallet</b></div>
+  <div class="stat"><span>🏆 Total earned</span><b id="hTotal">$0</b></div>
+</div>
+
+<main>
+  <section>
+    <div id="arena" aria-label="Piggy smashing arena. Click or tap a piggy bank to smash it.">
+      <div class="floorline">— THE SMASHING FLOOR —</div>
+      <div id="hammer" aria-hidden="true">🔨</div>
+    </div>
+    <div class="panel" style="margin-top:12px">
+      <h2>⚡ Abilities</h2>
+      <div class="abil">
+        <button class="blue" id="abRain" disabled>🌧️ Rock Rain (locked)</button>
+        <button class="blue" id="abZap" disabled>⚡ Electrify (locked)</button>
+        <button class="green" id="abCoffee">☕ Coffee Rush (free, 45s)</button>
+        <button class="red" id="bankruptBtn">💥 Declare Bankruptcy (prestige)</button>
+      </div>
+      <p style="color:var(--mut);font-size:13px;margin:8px 0 0">Unlock Rock Rain and Electrify in the Skill Tree. Bankruptcy ends the run but converts your progress into <b style="color:var(--gold)">Legacy Points</b> for permanent rings &amp; bracelets.</p>
+    </div>
+    <div class="panel"><h2>📜 What happened</h2><div class="log" id="log" aria-live="polite"></div></div>
+    <div class="panel"><h2>🪙 Rare coin collection</h2><div class="coins" id="coinSet"></div><p style="color:var(--mut);font-size:13px;margin:6px 0 0" id="coinTxt">Smash piggies to find all 8 rare coins.</p></div>
+  </section>
+
+  <aside>
+    <div class="panel"><h2>🧾 Bills — pay them before they bury you</h2><div id="bills"></div>
+      <p style="color:var(--mut);font-size:13px;margin:4px 0 0">Overdue bills charge interest and raise Stress. Stress at 100% = forced bankruptcy. Paying a bill earns a <b style="color:var(--gold)">free perk</b> + Legacy Points.</p>
+      <div class="stat" style="margin-top:8px"><span>😰 Stress</span><b id="hStress">0%</b><div class="bar"><i id="stressBar" style="background:linear-gradient(90deg,#fbbf24,#ef4444);width:0%"></i></div></div>
+    </div>
+
+    <div class="panel"><h2>🛠️ Skill tree</h2><div class="shop" id="shop"></div></div>
+
+    <div class="panel"><h2>🔨 Hammers</h2><div class="hammers" id="hammers"></div><p style="color:var(--mut);font-size:13px" id="hammerInfo"></p></div>
+
+    <div class="panel"><h2>💍 Legacy shop (permanent, survives bankruptcy)</h2><div class="shop" id="legacyShop"></div></div>
+  </aside>
+</main>
+
+<footer>
+  <p>An original, free fan-made browser game inspired by the piggy-smashing incremental genre. Not affiliated with Rike Games. Your progress saves automatically in this browser only. Goal: pay <b>15 bills</b> to become Debt-Free — then keep going in endless mode.</p>
+</footer>
+
+<div class="overlay" id="startOverlay">
+  <div class="modal">
+    <h2>🐷 Bills Must Be Paid</h2>
+    <p>You're broke. The bills keep coming. There's only one way out: <b>smash piggy banks</b>.</p>
+    <p>1. <b>Click / tap piggies</b> to smash them for coins. Every swing tires your hand (stamina).<br>
+    2. <b>Pay each bill</b> before its timer runs out — paying earns a free perk + Legacy Points.<br>
+    3. <b>Spend coins</b> on the skill tree and better hammers. Watch for runner, lazy, armoured, golden and black-money piggies.<br>
+    4. <b>Bankruptcy isn't the end</b> — it's prestige. Legacy rings &amp; bracelets make every next run stronger.<br>
+    5. Pay <b>15 bills</b> to win and become Debt-Free.</p>
+    <button id="playBtn" style="width:100%;font-size:18px;padding:14px">▶ Start Smashing</button>
+  </div>
+</div>
+
+<div class="overlay hidden" id="perkOverlay"><div class="modal"><h2>🎁 Bill paid! Choose 1 free perk</h2><div class="perks" id="perkList"></div></div></div>
+<div class="overlay hidden" id="endOverlay"><div class="modal"><h2 id="endTitle">😴 Your hand gave up</h2><p id="endText"></p><div class="perks" id="endBtns"></div></div></div>
+
+<script>
+"use strict";
+/* ============ helpers ============ */
+const $=id=>document.getElementById(id);
+const rnd=(a,b)=>a+Math.random()*(b-a);
+const ri=(a,b)=>Math.floor(rnd(a,b+1));
+const pick=a=>a[Math.floor(Math.random()*a.length)];
+const fmt=n=>"$"+Math.floor(n).toLocaleString("en-US");
+const clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
+
+/* ============ audio (all generated, no files) ============ */
+let AC=null,soundOn=true,musicOn=false,musicTimer=null;
+function ac(){try{if(!AC)AC=new (window.AudioContext||window.webkitAudioContext)();if(AC.state==="suspended")AC.resume();}catch(e){}return AC;}
+function beep(f,d,type="sine",g=.12,slide=0){if(!soundOn)return;try{const c=ac(),o=c.createOscillator(),v=c.createGain();o.type=type;o.frequency.value=f;if(slide)o.frequency.exponentialRampToValueAtTime(Math.max(30,f+slide),c.currentTime+d);v.gain.setValueAtTime(g,c.currentTime);v.gain.exponentialRampToValueAtTime(.001,c.currentTime+d);o.connect(v).connect(c.destination);o.start();o.stop(c.currentTime+d);}catch(e){}}
+const sfx={
+ smash(){beep(160,.12,"square",.18,-110);beep(70,.15,"sine",.22,-30);},
+ coin(){beep(rnd(1150,1600),.09,"sine",.08);setTimeout(()=>beep(rnd(1600,2100),.12,"sine",.07),45);},
+ oink(){beep(rnd(280,380),.1,"sawtooth",.05,120);},
+ crit(){beep(500,.18,"square",.15,700);},
+ pay(){[523,659,784,1046].forEach((f,i)=>setTimeout(()=>beep(f,.16,"sine",.1),i*80));},
+ bad(){beep(200,.4,"sawtooth",.12,-140);},
+ pop(){beep(rnd(600,900),.06,"sine",.07);}
+};
+function musicLoop(){if(!musicOn)return;const notes=[262,330,392,330,294,370,440,370];let i=0;musicTimer=setInterval(()=>{if(!musicOn)return;beep(notes[i%notes.length],.32,"triangle",.045);if(i%2===0)beep(131,.32,"sine",.05);i++;},340);}
+$("musicBtn").onclick=()=>{musicOn=!musicOn;$("musicBtn").textContent=musicOn?"🎵 Music: On":"🎵 Music: Off";if(musicOn){ac();musicLoop();}else clearInterval(musicTimer);};
+$("soundBtn").onclick=()=>{soundOn=!soundOn;$("soundBtn").textContent=soundOn?"🔊 Sound: On":"🔇 Sound: Off";};
+
+/* ============ game data ============ */
+const PIGTYPES=[
+ {id:"classic",emoji:"🐷",name:"Classic Piggy",hp:3,loot:[8,18],speed:14,weight:46,color:"#ff7eb6"},
+ {id:"baby",emoji:"🐽",name:"Baby Piggy",hp:1,loot:[3,8],speed:26,weight:16},
+ {id:"runner",emoji:"🏃🐷",name:"Runner Piggy",hp:2,loot:[14,30],speed:64,weight:13},
+ {id:"lazy",emoji:"🦥🐷",name:"Lazy Piggy",hp:9,loot:[26,55],speed:4,weight:11},
+ {id:"armor",emoji:"🛡️🐷",name:"Armoured Piggy",hp:16,loot:[40,85],speed:7,weight:7},
+ {id:"black",emoji:"🕶️🐷",name:"Black-Money Piggy",hp:6,loot:[60,140],speed:38,weight:4},
+ {id:"gold",emoji:"✨🐷",name:"GOLDEN Piggy",hp:5,loot:[120,260],speed:30,weight:3}
+];
+const HAMMERS=[
+ {id:"wood",emoji:"🔨",name:"Wooden Mallet",cost:0,dmg:1,speed:1,radius:0,crit:5,desc:"Balanced starter."},
+ {id:"rubber",emoji:"🩹🔨",name:"Rubber Hammer",cost:150,dmg:1,speed:1.7,radius:26,crit:3,desc:"Very fast, wide splash, light hits."},
+ {id:"iron",emoji:"⚒️",name:"Iron Hammer",cost:450,dmg:2,speed:.95,radius:8,crit:8,desc:"Heavy, reliable damage."},
+ {id:"spiked",emoji:"🔱",name:"Spiked Maul",cost:1200,dmg:3,speed:.8,radius:4,crit:20,desc:"Slow, small radius, huge crits."},
+ {id:"goldh",emoji:"👑🔨",name:"Golden Hammer",cost:3200,dmg:4,speed:1.15,radius:18,crit:14,desc:"Fast, strong, royal splash."},
+ {id:"mjolnir",emoji:"🌩️🔨",name:"Storm Hammer",cost:9000,dmg:7,speed:1.3,radius:30,crit:22,desc:"Legendary. Every pig fears it."}
+];
+const UPGRADES=[
+ {id:"grip",emoji:"✊",name:"Grip Strength",base:60,grow:1.55,max:12,desc:"+1 damage per level"},
+ {id:"wrist",emoji:"💪",name:"Wrist Pump",base:70,grow:1.55,max:10,desc:"+10% swing speed per level"},
+ {id:"gym",emoji:"🏋️",name:"Hit the Gym",base:80,grow:1.6,max:10,desc:"+20 max stamina per level"},
+ {id:"caffeine",emoji:"☕",name:"Caffeine Addiction",base:75,grow:1.6,max:10,desc:"+55% stamina regen per level"},
+ {id:"luck",emoji:"🍀",name:"Get Lucky",base:90,grow:1.65,max:10,desc:"+4% crit & better loot per level"},
+ {id:"rain",emoji:"🌧️",name:"Unlock: Rock Rain",base:600,grow:1,max:1,desc:"Ability: rocks hit EVERY piggy"},
+ {id:"zap",emoji:"⚡",name:"Unlock: Electrify",base:800,grow:1,max:1,desc:"Ability: lightning zaps 5 piggies hard"}
+];
+const PERKS=[
+ {id:"dmg",name:"💥 Strong Arm",desc:"+1 damage for this run",apply(){S.perkDmg++;}},
+ {id:"stam",name:"🫁 Deep Breathing",desc:"+30 max stamina for this run",apply(){S.perkStam+=30;S.stamina+=30;}},
+ {id:"greed",name:"🤑 Greed Is Good",desc:"+20% coin value for this run",apply(){S.perkGreed*=1.2;}},
+ {id:"regen",name:"🔋 Second Wind",desc:"+60% stamina regen for this run",apply(){S.perkRegen*=1.6;}},
+ {id:"crit",name:"🎯 Eagle Eye",desc:"+8% crit chance for this run",apply(){S.perkCrit+=8;}},
+ {id:"calm",name:"🧘 Zen Master",desc:"Stress falls 30% right now",apply(){S.stress=Math.max(0,S.stress-30);}},
+ {id:"interest",name:"🏦 Negotiator",desc:"All current bills drop 15%",apply(){S.bills.forEach(b=>b.amount=Math.floor(b.amount*.85));}}
+];
+const RARECOINS=["🥉 Bronze Farthing","🥈 Silver Dollar","🥇 Gold Sovereign","💠 Sapphire Coin","🔮 Amethyst Coin","💎 Diamond Coin","🌈 Rainbow Coin","👑 Crown Jewel Coin"];
+const BILLNAMES=["Rent","Electricity","Water","Internet","Phone","Groceries","Car Insurance","Credit Card","Gas","Dentist","Property Tax","Streaming Bundle","Car Repair","Medical","School Fees"];
+const LEGACYITEMS=[
+ {id:"ring",emoji:"💍",name:"Legacy Ring",cost:3,desc:"+5% damage each (owned: %n)",max:10},
+ {id:"bracelet",emoji:"📿",name:"Legacy Bracelet",cost:3,desc:"+5 max stamina each (owned: %n)",max:10},
+ {id:"charm",emoji:"🧿",name:"Lucky Charm",cost:4,desc:"+2% crit each (owned: %n)",max:8}
+];
+
+/* ============ state ============ */
+let S;
+function freshRun(keepLegacy){
+ return {money:0,stamina:100,stress:0,billsPaid:0,totalEarned:0,runEarned:0,pigsSmashed:0,
+  hammer:"wood",hammersOwned:["wood"],up:{grip:0,wrist:0,gym:0,caffeine:0,luck:0,rain:0,zap:0},
+  perkDmg:0,perkStam:0,perkGreed:1,perkRegen:1,perkCrit:0,bills:[],billTimer:6,coinsFound:[],
+  legacy:keepLegacy?S.legacy:0,legacyItems:keepLegacy?S.legacyItems:{ring:0,bracelet:0,charm:0},
+  cdRain:0,cdZap:0,cdCoffee:0,over:false,won:false,frenzy:0};
+}
+function save(){try{localStorage.setItem("bmbp-save",JSON.stringify(S));}catch(e){}}
+function load(){try{const d=localStorage.getItem("bmbp-save");if(d){S=JSON.parse(d);return true;}}catch(e){}return false;}
+if(!load())S=freshRun(false);
+
+/* derived stats */
+const H=()=>HAMMERS.find(h=>h.id===S.hammer);
+const maxStam=()=>100+S.up.gym*20+S.perkStam+S.legacyItems.bracelet*5;
+const damage=()=> (H().dmg+S.up.grip+S.perkDmg)*(1+S.legacyItems.ring*.05);
+const swingMs=()=> Math.max(110, 340/(H().speed*(1+S.up.wrist*.10)));
+const critCh=()=> H().crit+S.up.luck*4+S.perkCrit+S.legacyItems.charm*2;
+const regenRate=()=> (1.6*(1+S.up.caffeine*.55))*S.perkRegen;
+const coinMult=()=> S.perkGreed*(1+S.up.luck*.04)*(S.frenzy>0?2:1);
+
+/* ============ logging ============ */
+function log(msg,cls=""){const d=document.createElement("div");if(cls)d.className=cls;d.innerHTML=msg;$("log").prepend(d);while($("log").children.length>40)$("log").lastChild.remove();}
+
+/* ============ piggies ============ */
+const arena=$("arena");let pigs=[];let pigSeq=0;
+function spawnPig(forceType){
+ const total=PIGTYPES.reduce((a,p)=>a+p.weight,0);let r=Math.random()*total,type=PIGTYPES[0];
+ if(!forceType){for(const p of PIGTYPES){r-=p.weight;if(r<=0){type=p;break;}}}else type=forceType;
+ const scale=1+S.billsPaid*.16;
+ const el=document.createElement("div");el.className="pig "+type.id;el.setAttribute("role","button");el.setAttribute("aria-label",type.name);
+ el.innerHTML=`<div class="nm">${type.name}</div><div class="body">${type.emoji}</div><div class="hp"><i></i></div>`;
+ const w=arena.clientWidth-90,h=arena.clientHeight*.42;
+ const pig={id:++pigSeq,type,x:rnd(10,Math.max(20,w)),y:rnd(arena.clientHeight*.56,arena.clientHeight*.56+Math.max(20,h)),vx:(Math.random()<.5?-1:1)*type.speed*rnd(.6,1.3),vy:rnd(-8,8),hp:Math.ceil(type.hp*scale),maxhp:Math.ceil(type.hp*scale),el};
+ el.style.left=pig.x+"px";el.style.top=pig.y+"px";
+ el.addEventListener("pointerdown",e=>{e.stopPropagation();swingAt(pig,e);});
+ arena.appendChild(el);pigs.push(pig);
+ if(type.id==="gold")log("✨ A GOLDEN piggy appeared! Smash it fast!","gold");
+ if(type.id==="black")log("🕶️ A black-money piggy is sneaking around…","gold");
+ return pig;
+}
+function movePigs(dt){
+ const w=arena.clientWidth-84,hTop=arena.clientHeight*.55,hBot=arena.clientHeight-70;
+ for(const p of pigs){p.x+=p.vx*dt;p.y+=p.vy*dt;
+  if(p.x<4||p.x>w){p.vx*=-1;p.x=clamp(p.x,4,w);}
+  if(p.y<hTop||p.y>hBot){p.vy*=-1;p.y=clamp(p.y,hTop,hBot);}
+  p.el.style.left=p.x+"px";p.el.style.top=p.y+"px";
+  p.el.style.transform=p.vx<0?"scaleX(-1)":"scaleX(1)";
+  p.el.querySelector(".hp>i").style.width=clamp(p.hp/p.maxhp*100,0,100)+"%";}
+}
+function killPig(p){
+ pigs=pigs.filter(x=>x!==p);p.el.remove();S.pigsSmashed++;
+ let loot=rnd(p.type.loot[0],p.type.loot[1])*(1+S.billsPaid*.13)*coinMult();
+ loot=Math.round(loot);S.money+=loot;S.totalEarned+=loot;S.runEarned+=loot;
+ sfx.coin();
+ for(let i=0;i<4;i++){const c=document.createElement("div");c.className="coin";c.textContent=pick(["🪙","💰","✨","💵"]);c.style.left=(p.x+20)+"px";c.style.top=p.y+"px";c.style.setProperty("--dx",rnd(-50,50)+"px");arena.appendChild(c);setTimeout(()=>c.remove(),850);}
+ const sh=document.createElement("div");sh.className="shard";sh.textContent="💥";sh.style.left=(p.x+18)+"px";sh.style.top=(p.y+8)+"px";arena.appendChild(sh);setTimeout(()=>sh.remove(),650);
+ // rare coin drop
+ if(Math.random()<.045&&S.coinsFound.length<RARECOINS.length){const idx=S.coinsFound.length;S.coinsFound.push(idx);log("🪙 RARE COIN FOUND: "+RARECOINS[idx],"gold");sfx.pay();banner("🪙 Rare coin: "+RARECOINS[idx]);}
+ if(Math.random()<.06&&S.frenzy<=0){S.frenzy=15;banner("🔥 COIN FRENZY! Double money for 15s!");log("🔥 COIN FRENZY — double loot for 15 seconds!","gold");}
+ updateHUD();
+}
+let lastSwing=0;
+function swingAt(p,evt){
+ const now=performance.now();if(now-lastSwing<swingMs())return;lastSwing=now;
+ if(S.stamina<2){exhausted();return;}
+ S.stamina=Math.max(0,S.stamina-2);
+ const hm=$("hammer");hm.classList.remove("swing");void hm.offsetWidth;hm.classList.add("swing");sfx.smash();
+ // splash
+ const targets=[p,...pigs.filter(q=>q!==p&&Math.hypot(q.x-p.x,q.y-p.y)<=H().radius+40)];
+ for(const t of targets){
+   const crit=Math.random()*100<critCh();let dmg=damage()*(t===p?1:.6)*(crit?3:1);
+   t.hp-=dmg;t.el.classList.remove("hit");void t.el.offsetWidth;t.el.classList.add("hit");
+   if(Math.random()<.3)sfx.oink();if(crit)sfx.crit();
+   const d=document.createElement("div");d.className="dmg"+(crit?" crit":"");d.textContent=(crit?"CRIT ":"-")+Math.round(dmg);d.style.left=(t.x+14)+"px";d.style.top=(t.y-8)+"px";arena.appendChild(d);setTimeout(()=>d.remove(),720);
+   if(t.hp<=0)killPig(t);
+ }
+ if(S.stamina<=0)exhausted();
+ updateHUD();
+}
+arena.addEventListener("pointerdown",e=>{
+ const r=arena.getBoundingClientRect();
+ if(e.target===arena||e.target.classList.contains("floorline")){
+   const now=performance.now();if(now-lastSwing<swingMs())return;lastSwing=now;
+   if(S.stamina<1){exhausted();return;}
+   S.stamina=Math.max(0,S.stamina-1);sfx.smash();
+   const hm=$("hammer");hm.classList.remove("swing");void hm.offsetWidth;hm.classList.add("swing");
+   if(S.stamina<=0)exhausted();updateHUD();
+ }});
+arena.addEventListener("pointermove",e=>{const r=arena.getBoundingClientRect();const hm=$("hammer");hm.style.left=(e.clientX-r.left)+"px";hm.style.top=(e.clientY-r.top)+"px";});
+
+/* ============ banner / events ============ */
+function banner(txt){let b=$("banner");if(!b){b=document.createElement("div");b.id="banner";arena.appendChild(b);}b.textContent=txt;b.style.display="block";clearTimeout(banner._t);banner._t=setTimeout(()=>b.style.display="none",2600);}
+
+/* ============ bills ============ */
+function newBill(){
+ const n=S.billsPaid+S.bills.length;
+ const amount=Math.round((110*Math.pow(1.32,n)+rnd(0,60))/5)*5;
+ const bill={id:Date.now()+Math.random(),name:pick(BILLNAMES),amount,due:95,paid:false};
+ S.bills.push(bill);log("🧾 New bill: <b>"+bill.name+"</b> — "+fmt(amount)+" (due soon!)","bad");sfx.bad();renderBills();
+}
+function renderBills(){
+ const box=$("bills");box.innerHTML="";
+ if(!S.bills.length)box.innerHTML="<p style='color:var(--mut)'>No bills right now. Enjoy it. It won't last. 😌</p>";
+ for(const b of S.bills){
+  const div=document.createElement("div");div.className="bill "+(b.due<0?"over":b.due<30?"due":"");
+  div.innerHTML=`<div class="row"><b>🧾 ${b.name}</b><b>${fmt(b.amount)}</b></div>
+   <div class="row"><small>${b.due>=0?"⏳ Due in "+Math.ceil(b.due)+"s":"⚠️ OVERDUE — interest + stress rising!"}</small>
+   <button ${S.money<b.amount?"disabled":""} data-pay="${b.id}">Pay ${fmt(b.amount)}</button></div>`;
+  box.appendChild(div);
+ }
+ box.querySelectorAll("[data-pay]").forEach(btn=>btn.onclick=()=>payBill(+btn.dataset.pay));
+}
+function payBill(id){
+ const b=S.bills.find(x=>x.id===id);if(!b||S.money<b.amount)return;
+ S.money-=b.amount;S.bills=S.bills.filter(x=>x.id!==id);S.billsPaid++;
+ const lp=1+Math.floor(S.billsPaid/4);S.legacy+=lp;
+ sfx.pay();log("✅ Paid <b>"+b.name+"</b> "+fmt(b.amount)+" — +"+lp+" Legacy ⭐, perk unlocked!","good");
+ banner("✅ "+b.name+" PAID! +"+lp+" ⭐");
+ if(S.billsPaid>=15&&!S.won){S.won=true;banner("🏆 DEBT-FREE! You paid 15 bills! Endless mode continues…");log("🏆 YOU ARE DEBT-FREE! 15 bills paid. Endless mode: keep smashing!","gold");sfx.pay();}
+ renderBills();updateHUD();save();openPerks();
+}
+function openPerks(){
+ const list=$("perkList");list.innerHTML="";
+ const opts=[...PERKS].sort(()=>Math.random()-.5).slice(0,3);
+ for(const p of opts){const btn=document.createElement("button");btn.className="perk";btn.innerHTML=`<b>${p.name}</b>${p.desc}`;btn.onclick=()=>{p.apply();log("🎁 Perk chosen: "+p.name,"gold");$("perkOverlay").classList.add("hidden");updateHUD();save();};list.appendChild(btn);}
+ $("perkOverlay").classList.remove("hidden");
+}
+
+/* ============ shop / hammers / legacy ============ */
+function upCost(u){const lv=S.up[u.id];return lv>=u.max?null:Math.round(u.base*Math.pow(u.grow,lv));}
+function renderShop(){
+ const box=$("shop");box.innerHTML="";
+ for(const u of UPGRADES){const lv=S.up[u.id],c=upCost(u);
+  const div=document.createElement("div");div.className="item";
+  div.innerHTML=`<div>${u.emoji} <b>${u.name}</b> <span class="lv">Lv ${lv}/${u.max}</span><small>${u.desc}</small></div>`;
+  const b=document.createElement("button");b.textContent=c===null?"MAX":fmt(c);b.disabled=c===null||S.money<c;
+  b.onclick=()=>{if(S.money<c)return;S.money-=c;S.up[u.id]++;sfx.pay();log("🛠️ Upgraded "+u.name+" to Lv "+S.up[u.id],"good");if(u.id==="gym")S.stamina=Math.min(maxStam(),S.stamina+20);renderAll();save();};
+  div.appendChild(b);box.appendChild(div);}
+}
+function renderHammers(){
+ const box=$("hammers");box.innerHTML="";
+ for(const h of HAMMERS){const owned=S.hammersOwned.includes(h.id);
+  const b=document.createElement("button");b.className=(S.hammer===h.id?"sel ":"")+"ghost";b.style.color="var(--ink)";
+  b.textContent=h.emoji+" "+h.name+(owned?"":" — "+fmt(h.cost));
+  b.onclick=()=>{if(owned){S.hammer=h.id;sfx.pop();}else if(S.money>=h.cost){S.money-=h.cost;S.hammersOwned.push(h.id);S.hammer=h.id;sfx.pay();log("🔨 Bought "+h.name+"!","gold");}renderAll();save();};
+  box.appendChild(b);}
+ $("hammerInfo").textContent=H().emoji+" "+H().name+": DMG "+H().dmg+" · Speed "+H().speed+"x · Radius "+H().radius+" · Crit "+H().crit+"% — "+H().desc;
+}
+function renderLegacy(){
+ const box=$("legacyShop");box.innerHTML="";
+ for(const it of LEGACYITEMS){const owned=S.legacyItems[it.id];
+  const div=document.createElement("div");div.className="item";
+  div.innerHTML=`<div>${it.emoji} <b>${it.name}</b><small>${it.desc.replace("%n",owned)}</small></div>`;
+  const b=document.createElement("button");b.textContent=owned>=it.max?"MAX":it.cost+" ⭐";b.disabled=owned>=it.max||S.legacy<it.cost;
+  b.onclick=()=>{if(S.legacy<it.cost)return;S.legacy-=it.cost;S.legacyItems[it.id]++;sfx.pay();log("💍 Bought "+it.name+" (permanent!)","gold");renderAll();save();};
+  div.appendChild(b);box.appendChild(div);}
+}
+function renderCoins(){
+ const box=$("coinSet");box.innerHTML="";
+ RARECOINS.forEach((c,i)=>{const s=document.createElement("span");s.className="c"+(S.coinsFound.includes(i)?" got":"");s.textContent=["🥉","🥈","🥇","💠","🔮","💎","🌈","👑"][i];s.title=c;box.appendChild(s);});
+ $("coinTxt").textContent="Found "+S.coinsFound.length+" / 8 rare coins."+(S.coinsFound.length===8?" COLLECTION COMPLETE! 👑":" Smash piggies to find them all.");
+}
+function updateHUD(){
+ $("hMoney").textContent=fmt(S.money);
+ $("hStamTxt").textContent=Math.floor(S.stamina)+" / "+maxStam();
+ $("hStam").style.width=clamp(S.stamina/maxStam()*100,0,100)+"%";
+ $("hBills").textContent=S.billsPaid+" / 15"+(S.won?" 🏆":"");
+ $("hLegacy").textContent=S.legacy;
+ $("hHammer").textContent=H().emoji+" "+H().name;
+ $("hTotal").textContent=fmt(S.totalEarned);
+ $("hStress").textContent=Math.floor(S.stress)+"%";
+ $("stressBar").style.width=clamp(S.stress,0,100)+"%";
+ $("abRain").disabled=!(S.up.rain>0&&S.cdRain<=0);$("abRain").textContent=S.up.rain?("🌧️ Rock Rain"+(S.cdRain>0?" ("+Math.ceil(S.cdRain)+"s)":"")):"🌧️ Rock Rain (locked)";
+ $("abZap").disabled=!(S.up.zap>0&&S.cdZap<=0);$("abZap").textContent=S.up.zap?("⚡ Electrify"+(S.cdZap>0?" ("+Math.ceil(S.cdZap)+"s)":"")):"⚡ Electrify (locked)";
+ $("abCoffee").disabled=S.cdCoffee>0;$("abCoffee").textContent=S.cdCoffee>0?"☕ Coffee Rush ("+Math.ceil(S.cdCoffee)+"s)":"☕ Coffee Rush (free, 45s)";
+}
+function renderAll(){renderShop();renderHammers();renderLegacy();renderCoins();renderBills();updateHUD();}
+
+/* ============ abilities ============ */
+$("abRain").onclick=()=>{if(!S.up.rain||S.cdRain>0)return;S.cdRain=30;sfx.crit();banner("🌧️ ROCK RAIN!");[...pigs].forEach(p=>{p.hp-=damage()*2;const d=document.createElement("div");d.className="dmg";d.textContent="🪨";d.style.left=(p.x+16)+"px";d.style.top=(p.y-10)+"px";arena.appendChild(d);setTimeout(()=>d.remove(),700);if(p.hp<=0)killPig(p);});updateHUD();};
+$("abZap").onclick=()=>{if(!S.up.zap||S.cdZap>0)return;S.cdZap=22;sfx.crit();banner("⚡ ELECTRIFIED!");[...pigs].sort(()=>Math.random()-.5).slice(0,5).forEach(p=>{p.hp-=damage()*3.5;if(p.hp<=0)killPig(p);});updateHUD();};
+$("abCoffee").onclick=()=>{if(S.cdCoffee>0)return;S.cdCoffee=45;S.stamina=maxStam();log("☕ COFFEE RUSH — stamina refilled!","good");sfx.pay();updateHUD();};
+
+/* ============ run end / prestige ============ */
+function endModal(title,text,buttons){
+ $("endTitle").textContent=title;$("endText").innerHTML=text;const box=$("endBtns");box.innerHTML="";
+ for(const [label,fn,cls] of buttons){const b=document.createElement("button");b.className=cls||"";b.textContent=label;b.onclick=()=>{$("endOverlay").classList.add("hidden");fn();};box.appendChild(b);}
+ $("endOverlay").classList.remove("hidden");
+}
+function exhausted(){
+ if(!$("endOverlay").classList.contains("hidden"))return;
+ sfx.bad();
+ endModal("😴 Your hand gave up","Your stamina hit zero — the run pauses here. Bills paid this run: <b>"+S.billsPaid+"</b> · Earned: <b>"+fmt(S.runEarned)+"</b> · Piggies smashed: <b>"+S.pigsSmashed+"</b>",
+ [["☕ Rest & keep going (stress +10%)",()=>{S.stamina=maxStam();S.stress=clamp(S.stress+10,0,100);log("😴 You rested. Hand recovered, stress up a little.","bad");updateHUD();save();},"green"],
+  ["💥 Declare Bankruptcy instead",()=>doBankruptcy(),"red"]]);
+}
+function doBankruptcy(){
+ const bonus=Math.floor(S.runEarned/600)+Math.floor(S.billsPaid/2);
+ S.legacy+=bonus;const legacy=S.legacy,items=S.legacyItems,coins=S.coinsFound,total=S.totalEarned;
+ const keptLegacy=legacy;
+ S=freshRun(false);S.legacy=keptLegacy;S.legacyItems=items;S.coinsFound=coins;S.totalEarned=total;
+ pigs.forEach(p=>p.el.remove());pigs=[];for(let i=0;i<6;i++)spawnPig();
+ sfx.pay();log("💥 BANKRUPTCY declared — +"+bonus+" Legacy ⭐. Fresh run, permanent bonuses kept!","gold");
+ banner("💥 New run! +"+bonus+" Legacy ⭐");renderAll();save();
+}
+$("bankruptBtn").onclick=()=>{endModal("💥 Declare bankruptcy?","This resets money, bills, skill tree and hammers for this run. You keep: <b>Legacy Points, rings/bracelets/charms, and rare coins</b>. Bonus for this run: <b>+"+(Math.floor(S.runEarned/600)+Math.floor(S.billsPaid/2))+" ⭐</b>",
+ [["Yes — declare bankruptcy",()=>doBankruptcy(),"red"],["Cancel",()=>{},"ghost"]]);};
+$("resetBtn").onclick=()=>{endModal("↺ Reset everything?","This wipes ALL saved progress including Legacy and rare coins.",[["Yes, wipe it",()=>{localStorage.removeItem("bmbp-save");location.reload();},"red"],["Cancel",()=>{},"ghost"]]);};
+$("helpBtn").onclick=()=>$("startOverlay").classList.remove("hidden");
+$("playBtn").onclick=()=>{$("startOverlay").classList.add("hidden");ac();sfx.pay();log("🐷 Welcome! Smash piggies, pay bills, don't go bankrupt.","gold");};
+
+/* ============ main loop ============ */
+let lastT=performance.now(),spawnT=0,saveT=0;
+function loop(now){
+ const dt=Math.min(.05,(now-lastT)/1000);lastT=now;
+ if($("startOverlay").classList.contains("hidden")&&$("endOverlay").classList.contains("hidden")&&$("perkOverlay").classList.contains("hidden")){
+   movePigs(dt);
+   S.stamina=clamp(S.stamina+regenRate()*dt,0,maxStam());
+   if(S.frenzy>0)S.frenzy-=dt;
+   S.cdRain=Math.max(0,S.cdRain-dt);S.cdZap=Math.max(0,S.cdZap-dt);S.cdCoffee=Math.max(0,S.cdCoffee-dt);
+   spawnT-=dt;if(spawnT<=0&&pigs.length<9){spawnPig();spawnT=rnd(.7,1.6);}
+   if(Math.random()<dt*.012){const ev=ri(1,2);if(ev===1){banner("🌧️🐷 PIGGY RAIN!");for(let i=0;i<4;i++)spawnPig();log("🌧️ Piggy Rain event!","gold");}else{S.frenzy=12;banner("🔥 Surprise FRENZY!");}}
+   // bills
+   S.billTimer-=dt;
+   if(S.billTimer<=0){if(S.bills.length<4)newBill();S.billTimer=rnd(22,34);}
+   let stressUp=false;
+   for(const b of S.bills){b.due-=dt;if(b.due<0){b.amount*= (1+dt*.01);S.stress=clamp(S.stress+dt*2.2,0,100);stressUp=true;}}
+   if(!stressUp)S.stress=clamp(S.stress-dt*.55,0,100);
+   if(S.bills.length)renderBills();
+   if(S.stress>=100){S.stress=40;sfx.bad();log("😱 STRESS HIT 100% — forced bankruptcy!","bad");doBankruptcy();}
+   saveT-=dt;if(saveT<=0){save();saveT=5;}
+   updateHUD();
+ }
+ requestAnimationFrame(loop);
+}
+/* ============ init ============ */
+for(let i=0;i<6;i++)spawnPig();
+if(!S.bills.length)newBill();
+renderAll();
+log("💾 Save loaded — bills paid: "+S.billsPaid+", legacy: "+S.legacy+" ⭐");
+requestAnimationFrame(loop);
+</script>
+</body>
+</html>
